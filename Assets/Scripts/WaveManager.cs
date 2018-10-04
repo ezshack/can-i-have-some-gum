@@ -3,66 +3,50 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class WaveManager : MonoBehaviour {
-	public GameObject Enemy;
-	public float waveMultiplyer;
-	public int startingWave;
+
+	public GameObject Enemy; // The enemy prefab to spawn for each wave.
+	public float waveMultiplyer; // The number used to determine wave size.
+	public int startingWave; // The first wave should be about this big.
 
 	public GUIStyle skin;
 
-	//public List<GameObject> viableSpawns = null;
-
-	//public Spawn[] spawns;
-
-
-
 	int wave = 0;
-	// Use this for initialization
-	void Start () {
 
-		//spawns = FindObjectsOfType<Spawn> ();
+    Spawn [] spawns;
 
-
-
+	// Start is used for initialization
+	void Start (){
+        //Physics2D.IgnoreLayerCollision (9, 10, false);
+        spawns = FindObjectsOfType<Spawn>();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 
-		//int currI = 0;
-		
-		/*for ( int i = 0; i < spawns.Length - 1 ; i++ ){
-			
-			if(spawns[i].CheckViability() == true){
-
-				
-				viableSpawns.Add(spawns[i].gameObject);//SetValue(spawns[i].gameObject, currI);
-				
-				currI++;
-				
-			}
-		}	*/
-
-		int CurrWave = Mathf.FloorToInt (startingWave * Mathf.Pow( waveMultiplyer, wave + 1));
+		int CurrWave = Mathf.FloorToInt (startingWave * Mathf.Pow( waveMultiplyer, wave));
 		
 		if (GameObject.FindObjectOfType<Enemy>() == null) {
 			
 			SpawnWave(CurrWave);
-			
 		}
-
 	}
 
 	void OnGUI()
 	{
-		GUI.Label(new Rect(10, 20, 100, 20), string.Concat( "WAVE: " + wave.ToString()), skin);
+		GUI.Label(new Rect(10, 5, 100, 20), string.Concat( "WAVE: " + wave.ToString()), skin);
 	}
 
 	void SpawnWave(int size){
 
 		for ( int i = size; i > 0; i--){
-			//GameObject currSpawn = viableSpawns.
-			//Instantiate(Enemy, , gameObject.transform.rotation);
-			Instantiate(Enemy, new Vector2(transform.position.x, transform.position.y) + Random.insideUnitCircle * 7.5f * (wave + 1), transform.rotation);
+            int spawn = Random.Range(0, spawns.Length);
+
+            Vector2 pos = new Vector2( spawns[spawn].transform.position.x + (Random.value - 0.5f) , spawns[spawn].transform.position.y + (Random.value - 0.5f));
+
+            GameObject newEnemy = Instantiate(Enemy, pos , transform.rotation).gameObject;
+            newEnemy.layer = 9;
+            Physics2D.IgnoreLayerCollision( 9 , 10 , true );
+            newEnemy.SendMessage("DifficultyLevel",wave);
 		}
 		wave++;
 

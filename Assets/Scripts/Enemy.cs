@@ -7,10 +7,8 @@ public class Enemy : MonoBehaviour {
 	public GameObject[] items;
 
 	public GameObject navSensor;
-	//public GameObject navSensorRight;
-	//public GameObject navSensorLeft;
 
-
+    public GameObject pointerPrefab;
 
 	public int health;
 	PlayerController player;
@@ -23,8 +21,14 @@ public class Enemy : MonoBehaviour {
 
 	ScoreManager scoreManager;
 
-	// Use this for initialization
-	void Start () {
+    Rect pointerLoc;
+
+    GameObject pointer;
+
+    SpriteRenderer pointerSprite;
+
+    // Use this for initialization
+    void Start () {
 
 		player = FindObjectOfType<PlayerController> ();
 
@@ -32,9 +36,21 @@ public class Enemy : MonoBehaviour {
 
 		scoreManager = FindObjectOfType<ScoreManager> ();
 
-		gameObject.layer = 1;
+        //gameObject.layer = 9;
 
-	}
+        /*GameObject bounds = FindObjectOfType<Bounds>().gameObject;
+
+        Debug.Log( string.Concat( "Bounds: " , bounds.layer.ToString() ));
+        Debug.Log( gameObject.layer.ToString() );
+
+        Physics2D.IgnoreLayerCollision( bounds.layer , gameObject.layer , true );*/
+        GameObject newPointer = Instantiate(pointerPrefab, gameObject.transform.position, gameObject.transform.rotation);
+        newPointer.SendMessage("SetTarget", gameObject);
+        newPointer.SendMessage("SetPlayer", player.gameObject);
+        pointer = newPointer;
+        pointerSprite = pointer.GetComponent<SpriteRenderer>();
+
+    }
 
 	public GameObject deadEnemy;
 
@@ -57,7 +73,6 @@ public class Enemy : MonoBehaviour {
 
 		health = health - damage;
 
-		//print (Health);
 		if (health <= 0) {
 
 			Die();
@@ -68,7 +83,9 @@ public class Enemy : MonoBehaviour {
 	}
 	void Die (){
 
-		GameObject newDeadEnemy = deadEnemy;
+        DestroyImmediate(pointer);
+
+        GameObject newDeadEnemy = deadEnemy;
 
 		GameObject body = Instantiate(newDeadEnemy, transform.position, transform.rotation) as GameObject;
 
@@ -78,7 +95,7 @@ public class Enemy : MonoBehaviour {
 
 		player.SendMessage ("KillCount");
 
-		if (Random.Range (1, 4) == 1) {
+		if (Random.Range (1, 3) == 1) {
 
 			int rand = Random.Range(0,2);
 
@@ -92,7 +109,6 @@ public class Enemy : MonoBehaviour {
 
 			}
 		}
-
 		Destroy (gameObject);
 	}
 
@@ -104,5 +120,21 @@ public class Enemy : MonoBehaviour {
 			other.collider.SendMessage ("TakeDamage", damage , SendMessageOptions.DontRequireReceiver);
 		}
 	}
-	
+
+    void DifficultyLevel(int wave)
+    {
+        health = health + (1 * wave);
+        damage = damage + (Mathf.FloorToInt(wave / 4));
+        speed = speed + (wave / 7);
+    }
+    private void OnBecameVisible()
+    {
+        pointerSprite.color = Color.clear;
+    }
+    private void OnBecameInvisible()
+    {
+        if(pointerSprite != null)
+        pointerSprite.color = Color.white;
+    }
+
 }

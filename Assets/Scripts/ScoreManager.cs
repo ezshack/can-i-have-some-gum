@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class ScoreManager : MonoBehaviour {
 	
@@ -9,6 +10,10 @@ public class ScoreManager : MonoBehaviour {
 	int playerRecord;
 
 	public GUIStyle Skin;
+
+    Scene currScene;
+
+    public Rect position;
 
 	void Awake() {
 
@@ -25,22 +30,22 @@ public class ScoreManager : MonoBehaviour {
 
 		Skin.font.material.mainTexture.filterMode = FilterMode.Point;
 
+        currScene = SceneManager.GetActiveScene();
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
-	}
+    }
 
 	void OnGUI(){
 
-		if( Application.loadedLevelName == "Player Test Scene" ){
+        if( currScene.buildIndex == 0 ){
 
-			GUI.Label(new Rect(10, 80, 150, 20), /*string.Concat( "Kills: " + */kills.ToString());	
+            GUI.Label(new Rect((Screen.width / 2) - position.x, (Screen.height / 2) - position.y, position.width, position.height), string.Concat("Record: " + playerRecord.ToString()), Skin);
 
 		}else{
-
-			GUI.Label(new Rect( (Screen.width/2) - 75 , (Screen.height/2) - 10 , 150, 20), string.Concat( "Record: " + playerRecord.ToString()), Skin);
+            GUI.Label(new Rect(10, 80, 150, 20), string.Concat( "Kills: " + kills.ToString()));
 
 		}
 

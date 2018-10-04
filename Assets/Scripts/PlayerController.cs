@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour {
 
@@ -8,8 +9,9 @@ public class PlayerController : MonoBehaviour {
 	public GameObject gun;                // This is simply going to be a reference point for the raycast to use as an origin...
 	Camera main;                          // Main camera...
 	public GameObject bulletLinePrefab;   // The prefab to spawn as the bullet line effect...
+	public SpriteRenderer pauseButton;    // The sprite that looks like a pause button...
 
-	public float speed;                   // Player travel speed...
+	public float speed;                   // Player travel speed..
 
 	public int currNumberOfBullets = 1;   // Number of bullets I want the gun to spawn for each shot...
 	public int currDamagePerBullet = 3;   // Amount of damage I want each bullet to do when it hits something that can take damage...
@@ -31,8 +33,13 @@ public class PlayerController : MonoBehaviour {
 
 	ScoreManager scoreManager;            // The Scoremanager object that the player sends score to at the end of the current game...
 
-	// Use this for initialization...
-	void Start () {
+    GameObject bounds;
+
+    int layerMask;
+
+    public Texture pointer;
+    // Use this for initialization...
+    void Start () {
 
 		// Find the score manager. The score manager doesn't start in the same scene as the player so we can't set this value in the editor. We have to find the value when the player spawns.
 		scoreManager = FindObjectOfType<ScoreManager> ();
@@ -42,6 +49,14 @@ public class PlayerController : MonoBehaviour {
 
 		// Find the Rigidbody2D component attached to this object( the Player )...
 		Player = gameObject.GetComponent<Rigidbody2D> ();
+
+		pauseButton.enabled = false;
+
+        bounds = FindObjectOfType<Bounds>().gameObject;
+
+        bounds.layer = 10;
+
+        layerMask = 1 << bounds.layer;
 	}
 
 	// Late Update happens after regular update, making it useful for moving objects that follow other moving objects...
@@ -52,15 +67,22 @@ public class PlayerController : MonoBehaviour {
 		if (Vector2.Distance (transform.position, main.transform.position) > 7.5f) {
 
 			// linearly interpolates the camera's position to within 7.5 units of the player.
-			main.transform.position = Vector3.Lerp(main.transform.position, new Vector3 (transform.position.x , transform.position.y , -5.0f), (Vector2.Distance (transform.position, main.transform.position) - 7.5f) / 8f);
+			main.transform.position = Vector3.Lerp(main.transform.position, new Vector3 (transform.position.x , transform.position.y , -5.0f), (Vector2.Distance (transform.position, main.transform.position) - 7.5f) / 8f );
 		}
+		/*if (Vector2.Distance(gameObject.transform.position,Vector2.zero) > mapRange){
+			gameObject.transform.position = Vector2.Lerp(gameObject.transform.position, Vector2.zero, ( Vector2.Distance ( transform.position , Vector2.zero ) - mapRange ) / 8f );
+		}*/
+
+	}
+
+	void Update (){
 	}
 
 	// Update is called once per frame
 	void FixedUpdate () {
 
 		// Move the player according to the input axis
-		Player.velocity =( new Vector2( Input.GetAxis ("Horizontal"), Input.GetAxis ("Vertical")).normalized * speed);
+        Player.velocity =( new Vector2( Input.GetAxis ("Horizontal"), Input.GetAxis ("Vertical")).normalized * speed);
 
 		// Calls the faceMouse function defined later. Does exactly what you would expect.
 		faceMouse ();
@@ -111,7 +133,7 @@ public class PlayerController : MonoBehaviour {
 
 			// Creates and defines the bullet variable as a ray shooting from [Origin] towards [rayEnd] but only as far as [Range].
 			RaycastHit2D bullet;
-			bullet = Physics2D.Raycast ( Origin , rayEnd, Range + rangeMod );
+            bullet = Physics2D.Raycast ( Origin , rayEnd, Range + rangeMod, ~layerMask );
 
 			// Creates a [lineRend] variable and defines it as a newly created line renderer.
 			LineRenderer lineRend = ((GameObject)Instantiate(bulletLinePrefab)).GetComponent<LineRenderer>();
@@ -182,7 +204,9 @@ public class PlayerController : MonoBehaviour {
 	public void TogglePause() {
 
 		// Toggles the time scale between 0 and 1, effectively pausing and unpausing the game.
-		Time.timeScale = Mathf.Approximately(Time.timeScale, 0.0f) ? 1.0f : 0.0f;        
+		Time.timeScale = Mathf.Approximately(Time.timeScale, 0.0f) ? 1.0f : 0.0f;
+
+		pauseButton.enabled = !pauseButton.enabled;
 	}
 
 	// This function is called either when the player has 0 or less life, or when the "Quit" button is pressed.
@@ -191,8 +215,8 @@ public class PlayerController : MonoBehaviour {
 		// Sends a message telling the score manager to save the current score.
 		scoreManager.SendMessage("SaveScore");
 
-		// Loads the main menu scene.
-		Application.LoadLevel("MainMenu");
+        // Loads the main menu scene.
+        SceneManager.LoadScene(0);
 
 		// Resets the time scale to 1, just in case the player quit while paused.
 		Time.timeScale = 1.0f;
@@ -214,10 +238,6 @@ public class PlayerController : MonoBehaviour {
 
 		// Add 1 to [fireRateMod].
 		fireRateMod = fireRateMod + 1;
-
-		// This limits the total of [fireRate] and [fireRateMod]/3 to 50.
-		if ((fireRateMod / 3) + fireRate > 50)
-			fireRateMod = 50 - fireRate;
 	}
 
 	// This function is called when the player picks up a DamageMod object.
@@ -225,10 +245,6 @@ public class PlayerController : MonoBehaviour {
 
 		// Add 1 to [damageMod].
 		damageMod = damageMod + 1;
-
-		// Limits the total of [damageMod] and [currDamagePerBullet] to 20;
-		if (damageMod + currDamagePerBullet > 20)
-			damageMod = 20 - currDamagePerBullet;
 	}
 
 	// This function is called when the player picks up a KnockbackMod object.

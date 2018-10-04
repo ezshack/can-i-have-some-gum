@@ -23,7 +23,7 @@ public class Weapon : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Vector3.Distance(player.transform.position,gameObject.transform.position) < 1.25f && Input.GetKey(KeyCode.E) )
+		if (Vector3.Distance(player.transform.position,gameObject.transform.position) < 4f && Input.GetKey(KeyCode.E) )
 			PickUp(player);
 
 		Destroy (gameObject, 20f);

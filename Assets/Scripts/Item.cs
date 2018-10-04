@@ -21,14 +21,14 @@ public class Item : MonoBehaviour {
 
 			transform.Translate ( -(transform.position - player.transform.position).normalized * lerpTime ); //(-(transform.position - player.transform.position));
 
-			if (Vector3.Distance(player.transform.position,gameObject.transform.position) < 0.1f ){
+            if (Vector3.Distance(player.transform.position,gameObject.transform.position) < 0.5f ){
 
 				PickUp(player);
-			
-				Destroy (gameObject, 20f);
 			}
 		}
-	}
+
+        Destroy(gameObject, 30f);
+    }
 
 	void PickUp (GameObject other){
 
